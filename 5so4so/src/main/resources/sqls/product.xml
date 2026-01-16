@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Product">
+	<select id="productList" resultType="com.needle.FsoFso.product.dto.ProductDto">
+		SELECT id, name, thumbnail_url as thumbnailUrl, price, stock, created_at as createdAt, updated_at as updatedAt 
+		FROM products
+	</select>
+	
+	<select id="getproducPagelist" parameterType="Integer" 
+		resultType="com.needle.FsoFso.product.dto.ProductDto">
+		
+		select id, name, thumbnail_url as thumbnailUrl, price, stock, created_at as createdAt, updated_at as updatedAt
+		from (	select row_number()over(order by updated_at desc) as rnum,
+				id, name, thumbnail_url, price, stock, created_at, updated_at 
+				from products
+				where status = 1
+				order by updated_at desc) a
+		where rnum between #{start} and #{start} + 11
+		order by updated_at desc;
+		
+	</select>
+	
+	<select id="getAllProduct" resultType="Integer">
+		select count(*) 
+		from products
+		where status = 1;
+	</select>
+
+	<select id="getProductById" parameterType="Long" resultType="com.needle.FsoFso.product.dto.ProductDto">
+		select id, name, thumbnail_url, price, stock, created_at, updated_at
+		from products
+		where id = #{id} and status = 1;
+	</select>
+	
+	<insert id="addCart" parameterType="com.needle.FsoFso.product.dto.CartDto">
+		insert into cart(member_id, product_id, quantity)
+		values(#{memberId}, #{productId}, #{quantity})
+	</insert>
+	
+	<select id="checkCart" parameterType="com.needle.FsoFso.product.dto.CartDto"
+				resultType="int">
+		select count(*)
+		from cart
+		where member_id=#{memberId} and product_id=#{productId};
+	</select>
+	
+	<update id="removeProductById" parameterType="Long">
+		update products
+		set status = 0
+		where id = #{productId};
+	</update>
+	
+	<delete id="removeCartByMemberIdProductId" parameterType="com.needle.FsoFso.product.dto.CartDto">
+		delete from cart
+		where member_id = #{memberId} and product_id = #{productId};
+	</delete>
+	
+</mapper>
